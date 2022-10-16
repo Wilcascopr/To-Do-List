@@ -4,6 +4,8 @@ const ToDoList = new Map;
 const tasks_container = document.querySelector('.tasks_cont');
 // Form used to add tasks
 const myform = document.querySelector('.myform');
+// Array containing information of each task
+const tasks = JSON.parse(localStorage.getItem('todolist')) || [];
 
 //task object
 
@@ -23,6 +25,7 @@ class Task {
         this.completedbox = document.createElement('input');
         this.completedbox.setAttribute('type', 'checkbox');
         this.completedbox.checked = completed;
+        this.arrinfo = [this.task_name, this.task, this.deadline, this.completedbox.checked, this.mapid];
     }
 
     //creates the container of each task
@@ -54,20 +57,21 @@ class Task {
         temp_cont.appendChild(this.completedbox);
         this.container.appendChild(temp_cont)
     }
-
+    
     // Saves the task information inside an array to save it in the localStorage
 
     saveTask() {
-        const key = this.task_name;
-        localStorage.setItem(key.toLowerCase(), JSON.stringify([this.task_name, this.task, this.deadline, this.completedbox.checked, this.mapid]))
+        tasks.push(this.arrinfo)
+        localStorage.setItem('todolist', JSON.stringify(tasks))
     }
 
-    // Removes the task from localStorage
+// Removes the task from localStorage
 
     removeTask() {
-        localStorage.removeItem(this.id.toLowerCase());
+        const idx_toremove = tasks.indexOf(this.arrinfo);
+        tasks.splice(idx_toremove, 1)
+        localStorage.setItem('todolist', JSON.stringify(tasks));
     }
-    
 }
 
 // Creates the container and adds it to the document.
@@ -81,11 +85,16 @@ function addTasktoList(task) {
 // Checks if the task is in localStorage to wheter save it or not, return true to add it to the map or false to not
 
 function checkIfinSystem(task) {
-    const name = task.task_name;
-    if (!(name.toLowerCase() in localStorage)) {
+    let state = false
+    tasks.forEach((tsk) => {
+        if (tsk[0] == task.task_name) {
+            state = true;
+        }
+    });
+    if (!state) {
         task.saveTask();
         return true;
-    } else if (name.toLowerCase() in localStorage) {
+    } else {
         alert("Task was already added")
         return false;
     };
@@ -96,12 +105,13 @@ function checkIfinSystem(task) {
 myform.addEventListener('submit', () => {
     event.preventDefault();
     if (myform['task_name'].value != '' && myform['task'].value != '' && myform['deadline'].value != '') {
-        const task = new Task(myform['task_name'].value, myform['task'].value, myform['deadline'].value, false, Math.random()*100000000);
+        const task = new Task(myform['task_name'].value, myform['task'].value, myform['deadline'].value, myform['completed'].checked, Math.random()*100000000);
         if (checkIfinSystem(task)) {
             addTasktoList(task)
             myform['task_name'].value = ''
             myform['task'].value = ''
             myform['deadline'].value = ''
+            myform['completed'].checked = false
         };
     } else {
         alert('Please fill all the cells')
@@ -134,10 +144,10 @@ function Completed(check) {
 // Loads the tasks stored in localStorage, creates the tasks objects and add them to the document, and the map
 
 document.addEventListener('DOMContentLoaded', () => {
-    for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        const arr = JSON.parse(localStorage.getItem(key));
-        const task = new Task(arr[0], arr[1], arr[2], arr[3], arr[4]);
-        addTasktoList(task);
+    if (tasks != null) {
+        tasks.forEach((task) => {
+            const task_obj = new Task(task[0], task[1], task[2], task[3], task[4]);
+            addTasktoList(task_obj)
+        });
     }
 })
