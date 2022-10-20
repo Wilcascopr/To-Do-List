@@ -68,10 +68,31 @@ class Task {
 // Removes the task from localStorage
 
     removeTask() {
-        const idx_toremove = tasks.indexOf(this.arrinfo);
-        tasks.splice(idx_toremove, 1)
+        let idx;
+        for (let i = 0; i < tasks.length; i++) {
+            if (tasks[i][0] === this.arrinfo[0]) {
+                idx = i;
+                break;
+            }
+        }
+        tasks.splice(idx, 1)
         localStorage.setItem('todolist', JSON.stringify(tasks));
     }
+// Updates the information in localStorage
+
+    updateTask() {
+        let idx;
+        for (let i = 0; i < tasks.length; i++) {
+            if (tasks[i][0] === this.arrinfo[0]) {
+                idx = i;
+                break;
+            }
+        }
+        this.arrinfo[3] = this.completedbox.checked;
+        tasks[idx] = this.arrinfo;
+        localStorage.setItem('todolist', JSON.stringify(tasks));
+    }
+
 }
 
 // Creates the container and adds it to the document.
@@ -137,8 +158,8 @@ function removeTaskfromList(btn) {
 function Completed(check) {
     const id = check['id']*1;
     const task = ToDoList.get(id);
-    task.completedbox.checked = check.checked
-    task.saveTask()
+    task.completedbox.checked = check.checked;
+    task.updateTask();
 }
 
 // Loads the tasks stored in localStorage, creates the tasks objects and add them to the document, and the map
@@ -151,3 +172,4 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 })
+
